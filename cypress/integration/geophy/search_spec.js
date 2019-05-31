@@ -31,6 +31,28 @@ describe('/search', () => {
             .should('be.visible')
     })
 
+    it('matches searched zip code with city and state', () => {
+        cy.get('#address_full').type(32007)
+        cy.get('#btn_address_full')
+            .contains('Verify Address')
+            .click()
+        cy.get('#state')
+            .should('have.value', 'FL')
+        cy.get('#city')
+            .should('have.value', 'Bostwick')
+    })
+
+    it('matches searched city with state', () => {
+        cy.get('#address_full').type('San Diego')
+        cy.get('#btn_address_full')
+            .contains('Verify Address')
+            .click()
+        cy.get('#state')
+            .should('have.value', 'CA')
+        cy.get('#zipcode')
+            .should('have.value', '92101')
+    })    
+
     it('cannot parse unexisting or incorrect address', () => {
         cy.get('#address_full').type(incorrectAddress)
         cy.get('#btn_address_full')
@@ -194,6 +216,33 @@ describe('/search', () => {
                 expect($p).to.have.length(1)
                 expect($p).to.contain('This value should be greater than 2000.')
             })
+    })
+
+    it('has history section', () => {
+        cy.get('#navigation_app')
+            .contains('HISTORY')
+            .click()
+        cy.get('#section_history')
+        .should('be.visible')
+        .should('contain', 'History')
+    })
+
+    it('can select first report from history', () => {
+        let reportAddressText
+        cy.get('#navigation_app')
+            .contains('HISTORY')
+            .click()
+        cy.get('table').find('tr').as('rows')
+        cy.get('@rows').eq(1).find('td').as('columns')
+        cy.get('@columns').eq(2)
+        .then(($reportAddress) => {
+            reportAddressText = $reportAddress.text()
+            cy.wrap($reportAddress).click()
+            cy.get('.card-body > .row > :nth-child(2) > :nth-child(2)').should(($section) => {
+                const text = $section.text()
+                expect(text).to.include(reportAddressText)
+            })           
+        })
     })
 
 })
